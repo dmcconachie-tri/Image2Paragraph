@@ -17,17 +17,22 @@ class ImageCaptioning:
         else:
             self.data_type = torch.float16
         if self.captioner_base_model == 'blip2':
-            processor = Blip2Processor.from_pretrained("Salesforce/blip2-opt-2.7b")
+            processor = Blip2Processor.from_pretrained("Salesforce/blip2-opt-6.7b")
             model = Blip2ForConditionalGeneration.from_pretrained(
-                "Salesforce/blip2-opt-2.7b", torch_dtype=self.data_type
+                "Salesforce/blip2-opt-6.7b",
+                torch_dtype=self.data_type,
             )
         # for gpu with small memory
         elif self.captioner_base_model == 'blip':
             processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
-            model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base", torch_dtype=self.data_type)
+            model = BlipForConditionalGeneration.from_pretrained(
+                "Salesforce/blip-image-captioning-base",
+                torch_dtype=self.data_type,
+            )
         else:
             raise ValueError('arch not supported')
         model.to(self.device)
+        print(f"{self.captioner_base_model} initialized on {model.device}")
         return processor, model
 
     def image_caption(self, image_src):
@@ -37,10 +42,10 @@ class ImageCaptioning:
         generated_ids = self.model.generate(**inputs)
         generated_text = self.processor.batch_decode(generated_ids, skip_special_tokens=True)[0].strip()
         print('\033[1;35m' + '*' * 100 + '\033[0m')
-        print('\nStep1, BLIP2 caption:')
+        print(f'\nStep1, {self.captioner_base_model} caption:')
         print(generated_text)
         print('\033[1;35m' + '*' * 100 + '\033[0m')
         return generated_text
-    
+
     def image_caption_debug(self, image_src):
         return "A dish with salmon, broccoli, and something yellow."

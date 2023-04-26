@@ -30,7 +30,6 @@ class TextToImage:
             controlnet=controlnet,
             safety_checker=None,
             torch_dtype=self.data_type,
-            map_location=self.device,  # Add this line
         )
         pipeline.scheduler = UniPCMultistepScheduler.from_config(
             pipeline.scheduler.config
@@ -38,6 +37,8 @@ class TextToImage:
         pipeline.to(self.device)
         if self.device != 'cpu':
             pipeline.enable_model_cpu_offload()
+        print(f"SD-ControlNet initialized on {controlnet.device} with {self.device} requested")
+        print(f"SD-ControlNet pipeline initialized on {pipeline.device} with {self.device} requested")
         return pipeline
 
 
@@ -59,7 +60,7 @@ class TextToImage:
         print("Generated image has been svaed.")
         print('\033[1;35m' + '*' * 100 + '\033[0m')
         return generated_image
-    
+
     def text_to_image_debug(self, text, image):
         print("text_to_image_debug")
         return image

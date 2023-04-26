@@ -15,12 +15,13 @@ class RegionSemantic():
         self.segment_model = SegmentAnything(self.device, arch=self.sam_arch)
         if self.region_classify_model == 'ssa':
             self.semantic_segment_model = SemanticSegment(self.device)
+            print(f"SemanticSegment initialized on {self.semantic_segment_model.device}")
         elif self.region_classify_model == 'edit_anything':
             self.edit_anything_model = EditAnything(self.image_caption_model)
-            print('initalize edit anything model')
+            print('EditAnything initialized and ignores `self.device`')
         else:
             raise ValueError("semantic_class_model must be 'ssa' or 'edit_anything'")
-        
+
     def semantic_prompt_gen(self, anns, topk=5):
         """
         fliter too small objects and objects with low stability score
@@ -39,23 +40,23 @@ class RegionSemantic():
         print('\033[1;35m' + '*' * 100 + '\033[0m')
         return semantic_prompt
 
-    def region_semantic(self, img_src, region_classify_model='edit_anything'):
+    def region_semantic(self, img_src):
         print('\033[1;35m' + '*' * 100 + '\033[0m')
         print("\nStep3, Semantic Prompt:")
         print('extract region segmentation with SAM model....\n')
         anns = self.segment_model.generate_mask(img_src)
         print('finished...\n')
-        if region_classify_model == 'ssa':
-            print('generate region supervision with blip2 model....\n')
+        if self.region_classify_model == 'ssa':
+            print('generate region supervision with blip/blip2 model....\n')
             anns_w_class = self.semantic_segment_model.semantic_class_w_mask(img_src, anns)
             print('finished...\n')
-        elif region_classify_model == 'edit_anything':
+        elif self.region_classify_model == 'edit_anything':
             print('generate region supervision with edit anything model....\n')
             anns_w_class = self.edit_anything_model.semantic_class_w_mask(img_src, anns)
             print('finished...\n')
         else:
             raise ValueError("semantic_class_model must be 'ssa' or 'edit_anything'")
         return self.semantic_prompt_gen(anns_w_class)
-    
+
     def region_semantic_debug(self, img_src):
         return "region_semantic_debug"

@@ -52,7 +52,6 @@ class VisualizationDemo(object):
     def __init__(self, cfg, instance_mode=ColorMode.IMAGE):
         self.cpu_device = torch.device("cpu")
         self.instance_mode = instance_mode
-
         self.predictor = DefaultPredictor(cfg)
 
     def run_on_image(self, image):

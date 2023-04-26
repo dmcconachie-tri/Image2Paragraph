@@ -8,13 +8,13 @@ class SegmentAnything:
         if arch=='vit_b':
             pretrained_weights="pretrained_models/sam_vit_b_01ec64.pth"
         elif arch=='vit_l':
-            pretrained_weights="pretrained_models/sam_vit_l_0e2f7b.pth"
+            pretrained_weights="pretrained_models/sam_vit_l_0b3195.pth"
         elif arch=='vit_h':
-            pretrained_weights="pretrained_models/sam_vit_h_0e2f7b.pth"
+            pretrained_weights="pretrained_models/sam_vit_h_4b8939.pth"
         else:
             raise ValueError(f"arch {arch} not supported")
         self.model = self.initialize_model(arch, pretrained_weights)
-    
+
     def initialize_model(self, arch, pretrained_weights):
         sam = sam_model_registry[arch](checkpoint=pretrained_weights)
         sam.to(device=self.device)
