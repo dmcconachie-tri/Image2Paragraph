@@ -1,5 +1,5 @@
-from transformers import (CLIPProcessor, CLIPModel, AutoProcessor, CLIPSegForImageSegmentation, 
-                          OneFormerProcessor, OneFormerForUniversalSegmentation, 
+from transformers import (CLIPProcessor, CLIPModel, AutoProcessor, CLIPSegForImageSegmentation,
+                          OneFormerProcessor, OneFormerForUniversalSegmentation,
                           BlipProcessor, BlipForConditionalGeneration)
 import torch
 import mmcv
@@ -30,30 +30,30 @@ class SemanticSegment():
     def init_clip(self):
         # model_name = "openai/clip-vit-large-patch14"
         model_name = "openai/clip-vit-base-patch32"
-        self.clip_processor = CLIPProcessor.from_pretrained(model_name)
-        self.clip_model = CLIPModel.from_pretrained(model_name).to(self.device)
+        self.clip_processor = CLIPProcessor.from_pretrained(model_name, dtype=torch.float16)
+        self.clip_model = CLIPModel.from_pretrained(model_name, torch_dtype=torch.float16).to(self.device)
 
     def init_oneformer_ade20k(self):
         # model_name = "shi-labs/oneformer_ade20k_swin_large"
         model_name = "shi-labs/oneformer_ade20k_swin_tiny"
-        self.oneformer_ade20k_processor = OneFormerProcessor.from_pretrained(model_name)
-        self.oneformer_ade20k_model = OneFormerForUniversalSegmentation.from_pretrained(model_name).to(self.device)
+        self.oneformer_ade20k_processor = OneFormerProcessor.from_pretrained(model_name, dtype=torch.float16)
+        self.oneformer_ade20k_model = OneFormerForUniversalSegmentation.from_pretrained(model_name).to(device=self.device, dtype=torch.float16)
 
     def init_oneformer_coco(self):
         model_name = "shi-labs/oneformer_coco_swin_large"
-        self.oneformer_coco_processor = OneFormerProcessor.from_pretrained(model_name)
-        self.oneformer_coco_model = OneFormerForUniversalSegmentation.from_pretrained(model_name).to(self.device)
+        self.oneformer_coco_processor = OneFormerProcessor.from_pretrained(model_name, dtype=torch.float16)
+        self.oneformer_coco_model = OneFormerForUniversalSegmentation.from_pretrained(model_name).to(self.device).half()
 
     def init_blip(self):
         model_name = "Salesforce/blip-image-captioning-base"
         # model_name = "Salesforce/blip-image-captioning-large"
-        self.blip_processor = BlipProcessor.from_pretrained(model_name)
-        self.blip_model = BlipForConditionalGeneration.from_pretrained(model_name).to(self.device)
+        self.blip_processor = BlipProcessor.from_pretrained(model_name, dtype=torch.float16)
+        self.blip_model = BlipForConditionalGeneration.from_pretrained(model_name, torch_dtype=torch.float16).to(self.device)
 
     def init_clipseg(self):
         model_name = "CIDAS/clipseg-rd64-refined"
-        self.clipseg_processor = AutoProcessor.from_pretrained(model_name)
-        self.clipseg_model = CLIPSegForImageSegmentation.from_pretrained(model_name).to(self.device)
+        self.clipseg_processor = AutoProcessor.from_pretrained(model_name, dtype=torch.float16)
+        self.clipseg_model = CLIPSegForImageSegmentation.from_pretrained(model_name, torch_dtype=torch.float16).to(self.device)
         self.clipseg_processor.image_processor.do_resize = False
 
     @staticmethod
@@ -68,7 +68,10 @@ class SemanticSegment():
         return SemanticSegment.get_noun_phrases(caption)
 
     def oneformer_segmentation(self, image, processor, model):
-        inputs = processor(images=image, task_inputs=["semantic"], return_tensors="pt").to(self.device)
+        inputs = processor(images=image, task_inputs=["semantic"], return_tensors="pt").to(device=self.device, dtype=torch.float16)
+        # inputs["pixel_values"] = inputs["pixel_values"].half()
+        # inputs["pixel_mask"] = inputs["pixel_mask"].half()
+        # inputs["task_inputs"] = inputs["task_inputs"].half()
         outputs = model(**inputs)
         predicted_semantic_map = processor.post_process_semantic_segmentation(
             outputs, target_sizes=[image.size[::-1]])[0]
@@ -102,7 +105,6 @@ class SemanticSegment():
         logits = F.interpolate(outputs.logits[None], size=(h, w), mode='bilinear', align_corners=False)[0]
         return logits
 
-    
     def semantic_class_w_mask(self, img_src, anns, out_file_name="output/test.json", scale_small=1.2, scale_large=1.6):
         """
         generate class name for each mask

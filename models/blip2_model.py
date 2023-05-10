@@ -17,9 +17,10 @@ class ImageCaptioning:
         else:
             self.data_type = torch.float16
         if self.captioner_base_model == 'blip2':
-            processor = Blip2Processor.from_pretrained("Salesforce/blip2-opt-6.7b")
+            model_name = "Salesforce/blip2-opt-2.7b"
+            processor = Blip2Processor.from_pretrained(model_name)
             model = Blip2ForConditionalGeneration.from_pretrained(
-                "Salesforce/blip2-opt-6.7b",
+                model_name,
                 torch_dtype=self.data_type,
             )
         # for gpu with small memory

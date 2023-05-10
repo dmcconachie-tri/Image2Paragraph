@@ -24,7 +24,7 @@ class RegionSemantic():
 
     def semantic_prompt_gen(self, anns, topk=5):
         """
-        fliter too small objects and objects with low stability score
+        filter too small objects and objects with low stability score
         anns: [{'class_name': 'person', 'bbox': [0.0, 0.0, 0.0, 0.0], 'size': [0, 0], 'stability_score': 0.0}, ...]
         semantic_prompt: "person: [0.0, 0.0, 0.0, 0.0]; ..."
         """
